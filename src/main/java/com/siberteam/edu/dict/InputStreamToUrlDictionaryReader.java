@@ -43,6 +43,4 @@ public class InputStreamToUrlDictionaryReader implements Runnable {
     public void stringToSet(String string) {
 
     }
-
-
 }
