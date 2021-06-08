@@ -1,6 +1,8 @@
 package com.siberteam.edu.dict;
 
 import java.io.*;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 public class Main {
 
@@ -25,16 +27,22 @@ public class Main {
                         inputFile.getName());
             }
 
-            if (outputFile.exists() && outputFile.isFile()) {
-                throw new UrlDictionaryAppEcxeption(
-                        UrlDictionaryExitCode.FILE_ALREADY_EXISTS,
-                        outputFile.getName());
-            }
+//            if (outputFile.exists() && outputFile.isFile()) {
+//                throw new UrlDictionaryAppEcxeption(
+//                        UrlDictionaryExitCode.FILE_ALREADY_EXISTS,
+//                        outputFile.getName());
+//            }
 
             inputStream = new FileInputStream(inputFile);
             outputStream = new FileOutputStream(outputFile);
+//            System.out.println(getUrlList(inputStream).size());
+            ReadingUrlThreadsExecutor executor = new ReadingUrlThreadsExecutor(
+                    getUrlQueue(inputStream), 2);
+            executor.executeReading();
 
-            Thread.sleep(3);
+//            System.out.println(executor.getUrlDictionary());
+
+            Thread.sleep(3);//////////
         } catch (IOException | RuntimeException e) {
             handleException(UrlDictionaryExitCode.INPUT_OUTPUT, e);
         } catch (InterruptedException e) {
@@ -53,6 +61,18 @@ public class Main {
                 e.printStackTrace();
             }
         }
+    }
+
+    public static Queue<String> getUrlQueue(InputStream inputStream) throws IOException {
+        Queue<String> urlQueue = new PriorityQueue<>();
+        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+
+        String inputLine;
+        while ((inputLine = br.readLine()) != null) {
+            urlQueue.add(inputLine);
+        }
+
+        return urlQueue;
     }
 
     public static void handleException(UrlDictionaryExitCode exitCode,
