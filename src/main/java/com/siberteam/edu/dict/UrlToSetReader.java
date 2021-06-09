@@ -54,17 +54,27 @@ public class UrlToSetReader implements Runnable {
     }
 
     public void parseString(String inputString) {
-        inputString = inputString.replaceAll("[^А-Яа-я]", " ")
-                .replaceAll(" +", " ").trim();
+//        inputString = inputString.replaceAll("[^А-Яа-я]", " ").trim();
+//
+//        if (!inputString.isEmpty()) {
+//            for (String word : inputString.toLowerCase()
+//                    .split(" +")) {
+//                if (word.length() > 2) {
+//                    urlDictionary.add(word);
+//                }
+//            }
+//        }
 
+        String punctuationSigns = "\\p{Punct}";
         if (!inputString.isEmpty()) {
-            for (String word : inputString.toLowerCase()
-                    .split(" ")) {
-                if (word.length() > 2) {
+            inputString = inputString.replaceAll("[" + punctuationSigns + "]+", " ");
+            for (String word : inputString.toLowerCase().split(" +")) {
+                if (word.matches("[А-Яа-я]{3,}")) {
                     urlDictionary.add(word);
                 }
             }
         }
+
     }
 
     @Override
