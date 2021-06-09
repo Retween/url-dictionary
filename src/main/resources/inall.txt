@@ -1,4 +1,5 @@
-http://vavilon.ru/
+file:///home/retw/IdeaProjects/url-dictionary/src/main/resources/text1.txt
+file:///home/retw/IdeaProjects/url-dictionary/src/main/resources/text2.txt
 https://russian.rt.com/
 https://ria.ru/
 https://www.rbc.ru/
@@ -12,6 +13,4 @@ https://www.mk.ru/
 https://aif.ru/
 https://rg.ru/
 https://www.kommersant.ru/
-http://debri-dv.com/
-file:///home/retw/IdeaProjects/url-dictionary/src/main/resources/text1.txt
-file:///home/retw/IdeaProjects/url-dictionary/src/main/resources/text2.txt
+http://debri-dv.com/l-dictionary/src/main/resources/text2.txt

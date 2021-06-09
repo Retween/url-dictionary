@@ -10,41 +10,43 @@ public class ReadingUrlThreadsExecutionService {
     private final Set<String> urlDictionary;
     private final Queue<String> urlFilesQueue;
     private final int threadsEntity;
-    private boolean readingCompleted;
+    private final ExecutorService executor;
+    private final CountDownLatch latch;
 
     public ReadingUrlThreadsExecutionService(Queue<String> urlFilesQueue,
                                              int threadsEntity) {
         this.urlFilesQueue = urlFilesQueue;
         this.threadsEntity = threadsEntity;
         urlDictionary = Sets.newConcurrentHashSet();
+        executor = Executors.newFixedThreadPool(threadsEntity);
+        latch = new CountDownLatch(urlFilesQueue.size());
     }
 
-    public boolean executeReading() throws IOException, InterruptedException {
-        ExecutorService executor = Executors.newFixedThreadPool(threadsEntity);
+    public void executeReading() throws IOException, InterruptedException {
         int urlFilesEntity = urlFilesQueue.size();
 
         for (int i = 0; i < threadsEntity && i < urlFilesEntity; i++) {
-            executor.execute(new UrlToSetReader(urlDictionary, urlFilesQueue));
+            executor.execute(new UrlToSetReader(urlDictionary, urlFilesQueue,
+                    latch));
         }
 
         executor.shutdown();
 
-        readingCompleted = executor.awaitTermination(1, TimeUnit.MINUTES);
-
-        return readingCompleted;
+        latch.await();
     }
 
-    public Set<String> getUrlDictionary() {
-        return urlDictionary;
+    public List<String> gerSortedUrlDictionary() {
+        List<String> sortedList = new ArrayList<>(urlDictionary);
+        Collections.sort(sortedList);
+        return sortedList;
     }
 
     @Override
     public String toString() {
         return "ReadingUrlThreadsExecutionService{" +
                 "urlDictionarySize=" + urlDictionary.size() +
-                ", urlFilesQueue=" + urlFilesQueue +
+                ", urlFilesQueueSize=" + urlFilesQueue.size() +
                 ", threadsEntity=" + threadsEntity +
-                ", readingCompleted=" + readingCompleted +
                 '}';
     }
 }

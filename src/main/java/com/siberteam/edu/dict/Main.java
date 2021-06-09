@@ -1,16 +1,16 @@
 package com.siberteam.edu.dict;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.FileWriter;
+import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Main {
     public static void main(String[] args) {
         InputStream inputStream = null;
-        OutputStream outputStream = null;
         int threadsEntity;
-
+        long s = System.currentTimeMillis();//////////////////
         try {
             if (args.length != 3
                     || (threadsEntity = Integer.parseInt(args[2])) < 1) {
@@ -27,32 +27,22 @@ public class Main {
                         inputFile.getName());
             }
 
-            if (outputFile.exists() && outputFile.isFile()) {
-                throw new UrlDictionaryAppException(
-                        UrlDictionaryExitCode.FILE_ALREADY_EXISTS,
-                        outputFile.getName());
-            }
+//            if (outputFile.exists() && outputFile.isFile()) {
+//                throw new UrlDictionaryAppException(
+//                        UrlDictionaryExitCode.FILE_ALREADY_EXISTS,
+//                        outputFile.getName());
+//            }
 
             inputStream = new FileInputStream(inputFile);
-            outputStream = new FileOutputStream(outputFile);
 
             ReadingUrlThreadsExecutionService threadsExecutor =
                     new ReadingUrlThreadsExecutionService(
                             getUrlQueue(inputStream), threadsEntity);
 
-            if (!threadsExecutor.executeReading()) {
-                throw new UrlDictionaryAppException(
-                        UrlDictionaryExitCode.READING_NOT_FINISHED,
-                        threadsExecutor.toString());
-            }
+            threadsExecutor.executeReading();
 
-            StringSetToListSorter setSorter = new StringSetToListSorter(
-                    threadsExecutor.getUrlDictionary());
-
-            for (String word : setSorter.getSortedList()) {
-                outputStream.write(word.getBytes(StandardCharsets.UTF_8));
-                outputStream.write('\n');
-            }
+            writeDictionaryToFile(outputFile,
+                    threadsExecutor.gerSortedUrlDictionary());
 
         } catch (IOException | RuntimeException e) {
             handleException(UrlDictionaryExitCode.INPUT_OUTPUT, e);
@@ -62,9 +52,6 @@ public class Main {
             handleException(e.getExitCode(), e);
         } finally {
             try {
-                if (outputStream != null) {
-                    outputStream.close();
-                }
                 if (inputStream != null) {
                     inputStream.close();
                 }
@@ -72,6 +59,9 @@ public class Main {
                 e.printStackTrace();
             }
         }
+        long f = System.currentTimeMillis();//////////////////
+        System.out.println(f - s);
+
     }
 
     public static Queue<String> getUrlQueue(
@@ -89,10 +79,20 @@ public class Main {
         return urlQueue;
     }
 
+    public static void writeDictionaryToFile(
+            File outputFile, Collection<String> collection) throws IOException {
+        try (BufferedWriter bw = new BufferedWriter(
+                new FileWriter(outputFile))) {
+
+            for (String word : collection) {
+                bw.write(word + "\n");
+            }
+        }
+    }
+
     public static void handleException(UrlDictionaryExitCode exitCode,
                                        Exception e) {
-        log(exitCode.getDescription() + "\n" +
-                e.getMessage() + "\n" +
+        log(exitCode.getDescription() + "\n" + e.getMessage() + "\n" +
                 e.getCause());
         System.exit(exitCode.getCode());
     }

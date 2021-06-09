@@ -3,42 +3,66 @@ package com.siberteam.edu.dict;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 public class UrlToSetReader implements Runnable {
     private final Set<String> urlDictionary;
     private final Queue<String> urlFiles;
+    private final CountDownLatch latch;
 
-    public UrlToSetReader(Set<String> urlDictionary, Queue<String> urlFiles) {
+    public UrlToSetReader(Set<String> urlDictionary, Queue<String> urlFiles,
+                          CountDownLatch latch) {
+        System.out.println("CREATED");//////////////////////
         this.urlDictionary = urlDictionary;
         this.urlFiles = urlFiles;
+        this.latch = latch;
     }
 
     @Override
     public void run() {
+        System.out.println("Started");///////////////
         while (!urlFiles.isEmpty()) {
-            try (BufferedReader br = new BufferedReader(
-                    new InputStreamReader(
-                            new URL(urlFiles.poll()).openStream()))) {
+            String urlFilePath = urlFiles.poll();
+            URL url = null;
 
-                String inputString;
-                while ((inputString = br.readLine()) != null) {
-                    inputString = inputString.replaceAll("[^А-Яа-я]", " ")
-                            .replaceAll(" +", " ").trim();
+            try {
+                if (urlFilePath != null) {
+                    url = new URL(urlFilePath);
 
-                    if (!inputString.isEmpty()) {
-                        for (String word : inputString.toLowerCase()
-                                .split(" ")) {
-                            if (word.length() > 2) {
-                                urlDictionary.add(word);
-                            }
-                        }
+                    BufferedReader br = new BufferedReader(
+                            new InputStreamReader(url.openStream()));
+
+                    String inputString;
+                    while ((inputString = br.readLine()) != null) {
+                        parseString(inputString);
                     }
                 }
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                Main.log("Invalid URL: " + url);
+            } finally {
+                latch.countDown();
+            }
+        }
+
+//        } finally {
+//            latch.countDown();
+//        }
+    }
+
+    public void parseString(String inputString) {
+        inputString = inputString.replaceAll("[^А-Яа-я]", " ")
+                .replaceAll(" +", " ").trim();
+
+        if (!inputString.isEmpty()) {
+            for (String word : inputString.toLowerCase()
+                    .split(" ")) {
+                if (word.length() > 2) {
+                    urlDictionary.add(word);
+                }
             }
         }
     }
