@@ -7,7 +7,8 @@ public enum UrlDictionaryExitCode {
     CANNOT_OPEN_INPUT(66, "File not found"),
     INPUT_OUTPUT(74, "Input/Output exception was caught"),
     FILE_ALREADY_EXISTS(74, "File already exists"),
-    INTERRUPTED(1, "Interrupted exception was caught");
+    INTERRUPTED(1, "Interrupted exception was caught"),
+    READING_NOT_FINISHED(1,"Reading files is not finished");
 
     private final int code;
     private final String description;

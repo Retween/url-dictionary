@@ -1,15 +1,15 @@
 package com.siberteam.edu.dict;
 
-public class UrlDictionaryAppEcxeption extends Exception {
+public class UrlDictionaryAppException extends Exception {
     private final UrlDictionaryExitCode exitCode;
 
-    public UrlDictionaryAppEcxeption(UrlDictionaryExitCode exitCode,
+    public UrlDictionaryAppException(UrlDictionaryExitCode exitCode,
                                      String message) {
         super(message);
         this.exitCode = exitCode;
     }
 
-    public UrlDictionaryAppEcxeption(UrlDictionaryExitCode exitCode) {
+    public UrlDictionaryAppException(UrlDictionaryExitCode exitCode) {
         super("Char Frequency Exception");
         this.exitCode = exitCode;
     }

@@ -13,3 +13,5 @@ https://aif.ru/
 https://rg.ru/
 https://www.kommersant.ru/
 http://debri-dv.com/
+file:///home/retw/IdeaProjects/url-dictionary/src/main/resources/text1.txt
+file:///home/retw/IdeaProjects/url-dictionary/src/main/resources/text2.txt

@@ -1,20 +1,20 @@
 package com.siberteam.edu.dict;
 
 import java.io.*;
-import java.util.PriorityQueue;
+import java.nio.charset.StandardCharsets;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Main {
-
-
     public static void main(String[] args) {
         InputStream inputStream = null;
         OutputStream outputStream = null;
         int threadsEntity;
+
         try {
             if (args.length != 3
                     || (threadsEntity = Integer.parseInt(args[2])) < 1) {
-                throw new UrlDictionaryAppEcxeption(
+                throw new UrlDictionaryAppException(
                         UrlDictionaryExitCode.COMMAND_LINE_USAGE);
             }
 
@@ -22,32 +22,43 @@ public class Main {
             File outputFile = new File(args[1]);
 
             if (!inputFile.exists()) {
-                throw new UrlDictionaryAppEcxeption(
+                throw new UrlDictionaryAppException(
                         UrlDictionaryExitCode.CANNOT_OPEN_INPUT,
                         inputFile.getName());
             }
 
-//            if (outputFile.exists() && outputFile.isFile()) {
-//                throw new UrlDictionaryAppEcxeption(
-//                        UrlDictionaryExitCode.FILE_ALREADY_EXISTS,
-//                        outputFile.getName());
-//            }
+            if (outputFile.exists() && outputFile.isFile()) {
+                throw new UrlDictionaryAppException(
+                        UrlDictionaryExitCode.FILE_ALREADY_EXISTS,
+                        outputFile.getName());
+            }
 
             inputStream = new FileInputStream(inputFile);
             outputStream = new FileOutputStream(outputFile);
-//            System.out.println(getUrlList(inputStream).size());
-            ReadingUrlThreadsExecutor executor = new ReadingUrlThreadsExecutor(
-                    getUrlQueue(inputStream), 2);
-            executor.executeReading();
 
-//            System.out.println(executor.getUrlDictionary());
+            ReadingUrlThreadsExecutionService threadsExecutor =
+                    new ReadingUrlThreadsExecutionService(
+                            getUrlQueue(inputStream), threadsEntity);
 
-            Thread.sleep(3);//////////
+            if (!threadsExecutor.executeReading()) {
+                throw new UrlDictionaryAppException(
+                        UrlDictionaryExitCode.READING_NOT_FINISHED,
+                        threadsExecutor.toString());
+            }
+
+            StringSetToListSorter setSorter = new StringSetToListSorter(
+                    threadsExecutor.getUrlDictionary());
+
+            for (String word : setSorter.getSortedList()) {
+                outputStream.write(word.getBytes(StandardCharsets.UTF_8));
+                outputStream.write('\n');
+            }
+
         } catch (IOException | RuntimeException e) {
             handleException(UrlDictionaryExitCode.INPUT_OUTPUT, e);
         } catch (InterruptedException e) {
             handleException(UrlDictionaryExitCode.INTERRUPTED, e);
-        } catch (UrlDictionaryAppEcxeption e) {
+        } catch (UrlDictionaryAppException e) {
             handleException(e.getExitCode(), e);
         } finally {
             try {
@@ -63,13 +74,16 @@ public class Main {
         }
     }
 
-    public static Queue<String> getUrlQueue(InputStream inputStream) throws IOException {
-        Queue<String> urlQueue = new PriorityQueue<>();
-        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+    public static Queue<String> getUrlQueue(
+            InputStream inputStream) throws IOException {
+        ConcurrentLinkedQueue<String> urlQueue = new ConcurrentLinkedQueue<>();
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(inputStream))) {
 
-        String inputLine;
-        while ((inputLine = br.readLine()) != null) {
-            urlQueue.add(inputLine);
+            String inputLine;
+            while ((inputLine = br.readLine()) != null) {
+                urlQueue.add(inputLine);
+            }
         }
 
         return urlQueue;
