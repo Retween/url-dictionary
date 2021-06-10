@@ -6,25 +6,25 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class ReadingUrlThreadsExecutionService {
+public class ReadingUrlThreadsExecutor {
     private final Set<String> urlDictionary;
     private final Queue<String> urlFilesQueue;
-    private final int threadsEntity;
     private final ExecutorService executor;
     private final CountDownLatch latch;
+    private final int threadsEntity;
+    private final int urlFilesEntity;
 
-    public ReadingUrlThreadsExecutionService(Queue<String> urlFilesQueue,
-                                             int threadsEntity) {
+    public ReadingUrlThreadsExecutor(Queue<String> urlFilesQueue,
+                                     int threadsEntity) {
         this.urlFilesQueue = urlFilesQueue;
         this.threadsEntity = threadsEntity;
+        urlFilesEntity = urlFilesQueue.size();
         urlDictionary = Sets.newConcurrentHashSet();
         executor = Executors.newFixedThreadPool(threadsEntity);
-        latch = new CountDownLatch(urlFilesQueue.size());
+        latch = new CountDownLatch(urlFilesEntity);
     }
 
     public void executeReading() throws IOException, InterruptedException {
-        int urlFilesEntity = urlFilesQueue.size();
-
         for (int i = 0; i < threadsEntity && i < urlFilesEntity; i++) {
             executor.execute(new UrlToSetReader(urlDictionary, urlFilesQueue,
                     latch));
@@ -35,10 +35,9 @@ public class ReadingUrlThreadsExecutionService {
         latch.await();
     }
 
-    public List<String> gerSortedUrlDictionary() {
-        List<String> sortedList = new ArrayList<>(urlDictionary);
-        Collections.sort(sortedList);
-        return sortedList;
+
+    public Set<String> getUrlDictionary() {
+        return urlDictionary;
     }
 
     @Override

@@ -3,7 +3,6 @@ package com.siberteam.edu.dict;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Queue;
 import java.util.Set;
@@ -16,7 +15,6 @@ public class UrlToSetReader implements Runnable {
 
     public UrlToSetReader(Set<String> urlDictionary, Queue<String> urlFiles,
                           CountDownLatch latch) {
-        System.out.println("CREATED");//////////////////////
         this.urlDictionary = urlDictionary;
         this.urlFiles = urlFiles;
         this.latch = latch;
@@ -24,17 +22,16 @@ public class UrlToSetReader implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("Started");///////////////
         while (!urlFiles.isEmpty()) {
             String urlFilePath = urlFiles.poll();
             URL url = null;
+            BufferedReader br = null;
 
             try {
                 if (urlFilePath != null) {
                     url = new URL(urlFilePath);
-
-                    BufferedReader br = new BufferedReader(
-                            new InputStreamReader(url.openStream()));
+                    br = new BufferedReader(new InputStreamReader(
+                            url.openStream()));
 
                     String inputString;
                     while ((inputString = br.readLine()) != null) {
@@ -44,37 +41,28 @@ public class UrlToSetReader implements Runnable {
             } catch (IOException e) {
                 Main.log("Invalid URL: " + url);
             } finally {
+                if (br != null) {
+                    try {
+                        br.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
                 latch.countDown();
             }
         }
-
-//        } finally {
-//            latch.countDown();
-//        }
     }
 
-    public void parseString(String inputString) {
-//        inputString = inputString.replaceAll("[^А-Яа-я]", " ").trim();
-//
-//        if (!inputString.isEmpty()) {
-//            for (String word : inputString.toLowerCase()
-//                    .split(" +")) {
-//                if (word.length() > 2) {
-//                    urlDictionary.add(word);
-//                }
-//            }
-//        }
-
-        String punctuationSigns = "\\p{Punct}";
+    private void parseString(String inputString) {
         if (!inputString.isEmpty()) {
-            inputString = inputString.replaceAll("[" + punctuationSigns + "]+", " ");
-            for (String word : inputString.toLowerCase().split(" +")) {
-                if (word.matches("[А-Яа-я]{3,}")) {
+            for (String word : inputString.toLowerCase()
+                    .split("[\\p{Punct}\\s«»+]")) {
+//                    .split("[\\s+]")) {
+                if (word.matches("[А-Яа-яЁё]{3,}")) {
                     urlDictionary.add(word);
                 }
             }
         }
-
     }
 
     @Override

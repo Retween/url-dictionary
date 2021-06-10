@@ -1,25 +1,38 @@
 package com.siberteam.edu.dict;
 
+import org.apache.commons.cli.*;
+
 import java.io.*;
-import java.io.FileWriter;
-import java.util.Collection;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Main {
     public static void main(String[] args) {
         InputStream inputStream = null;
+        OutputStream outputStream = null;
         int threadsEntity;
-        long s = System.currentTimeMillis();//////////////////
-        try {
-            if (args.length != 3
-                    || (threadsEntity = Integer.parseInt(args[2])) < 1) {
-                throw new UrlDictionaryAppException(
-                        UrlDictionaryExitCode.COMMAND_LINE_USAGE);
-            }
 
-            File inputFile = new File(args[0]);
-            File outputFile = new File(args[1]);
+        Options options = new Options();
+        CommandLineParser parser = new DefaultParser();
+
+        options.addRequiredOption("i", "inputFile", true,
+                "File with URL addresses list");
+        options.addRequiredOption("o", "outputFile", true,
+                "Output file for recording the final dictionary");
+        options.addRequiredOption("t", "threadsNumber", true,
+                "number of threads to work with URL addresses");
+
+        try {
+            CommandLine cmd = parser.parse(options, args);
+
+            File inputFile = new File(cmd.getOptionValue("i"));
+            File outputFile = new File(cmd.getOptionValue("o"));
+            threadsEntity = Integer.parseInt(cmd.getOptionValue("t"));
+
+            if (threadsEntity < 1) {
+                throw new UrlDictionaryAppException(
+                        UrlDictionaryExitCode.COMMAND_LINE_USAGE,
+                        inputFile.getName());
+            }
 
             if (!inputFile.exists()) {
                 throw new UrlDictionaryAppException(
@@ -27,22 +40,28 @@ public class Main {
                         inputFile.getName());
             }
 
-//            if (outputFile.exists() && outputFile.isFile()) {
-//                throw new UrlDictionaryAppException(
-//                        UrlDictionaryExitCode.FILE_ALREADY_EXISTS,
-//                        outputFile.getName());
-//            }
+            if (outputFile.exists() && outputFile.isFile()) {
+                throw new UrlDictionaryAppException(
+                        UrlDictionaryExitCode.FILE_ALREADY_EXISTS,
+                        outputFile.getName());
+            }
 
             inputStream = new FileInputStream(inputFile);
+            outputStream = new FileOutputStream(outputFile);
 
-            ReadingUrlThreadsExecutionService threadsExecutor =
-                    new ReadingUrlThreadsExecutionService(
-                            getUrlQueue(inputStream), threadsEntity);
+            InputStreamToQueueReader reader =
+                    new InputStreamToQueueReader(inputStream);
+            Queue<String> urlFiles = reader.getUrlQueue();
 
+            ReadingUrlThreadsExecutor threadsExecutor =
+                    new ReadingUrlThreadsExecutor(urlFiles, threadsEntity);
             threadsExecutor.executeReading();
 
-            writeDictionaryToFile(outputFile,
-                    threadsExecutor.gerSortedUrlDictionary());
+            CollectionToOutputStreamWriter writer =
+                    new CollectionToOutputStreamWriter(outputStream);
+            writer.writeSortedCollectionToFile(
+                    threadsExecutor.getUrlDictionary());
+
 
         } catch (IOException | RuntimeException e) {
             handleException(UrlDictionaryExitCode.INPUT_OUTPUT, e);
@@ -50,44 +69,21 @@ public class Main {
             handleException(UrlDictionaryExitCode.INTERRUPTED, e);
         } catch (UrlDictionaryAppException e) {
             handleException(e.getExitCode(), e);
+        } catch (ParseException e) {
+            handleException(UrlDictionaryExitCode.COMMAND_LINE_USAGE, e);
         } finally {
             try {
                 if (inputStream != null) {
                     inputStream.close();
                 }
+                if (outputStream != null) {
+                    outputStream.close();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        long f = System.currentTimeMillis();//////////////////
-        System.out.println(f - s);
 
-    }
-
-    public static Queue<String> getUrlQueue(
-            InputStream inputStream) throws IOException {
-        ConcurrentLinkedQueue<String> urlQueue = new ConcurrentLinkedQueue<>();
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(inputStream))) {
-
-            String inputLine;
-            while ((inputLine = br.readLine()) != null) {
-                urlQueue.add(inputLine);
-            }
-        }
-
-        return urlQueue;
-    }
-
-    public static void writeDictionaryToFile(
-            File outputFile, Collection<String> collection) throws IOException {
-        try (BufferedWriter bw = new BufferedWriter(
-                new FileWriter(outputFile))) {
-
-            for (String word : collection) {
-                bw.write(word + "\n");
-            }
-        }
     }
 
     public static void handleException(UrlDictionaryExitCode exitCode,
