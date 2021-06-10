@@ -62,7 +62,6 @@ public class Main {
             writer.writeSortedCollectionToFile(
                     threadsExecutor.getUrlDictionary());
 
-
         } catch (IOException | RuntimeException e) {
             handleException(UrlDictionaryExitCode.INPUT_OUTPUT, e);
         } catch (InterruptedException e) {

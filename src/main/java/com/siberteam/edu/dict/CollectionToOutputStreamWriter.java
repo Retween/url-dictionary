@@ -14,8 +14,8 @@ public class CollectionToOutputStreamWriter {
     public void writeSortedCollectionToFile(final Collection<String> collection)
             throws IOException {
         sortedCollection = sortUrlDictionary(collection);
-        try (BufferedWriter bw = new BufferedWriter(new
-                OutputStreamWriter(outputStream))) {
+        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
+                outputStream))) {
 
             for (String word : sortedCollection) {
                 bw.write(word + "\n");
