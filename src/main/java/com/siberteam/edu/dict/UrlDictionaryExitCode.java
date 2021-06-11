@@ -32,9 +32,9 @@ public enum UrlDictionaryExitCode {
 
     @Override
     public String toString() {
-        return "UrlDictionaryExitCode{" +
+        return "UrlDictionaryExitCode" + "[" +
                 "code=" + code +
                 ", description='" + description + '\'' +
-                '}';
+                ']';
     }
 }

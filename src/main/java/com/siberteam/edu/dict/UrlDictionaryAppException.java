@@ -20,9 +20,8 @@ public class UrlDictionaryAppException extends Exception {
 
     @Override
     public String toString() {
-        return "UrlDictionaryAppException{" +
+        return "UrlDictionaryAppException" + "[" +
                 "exitCode=" + exitCode +
-                ", message=" + getMessage() +
-                '}';
+                ']';
     }
 }
