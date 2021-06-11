@@ -8,7 +8,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class InputStreamToQueueReader {
-
     private final Queue<String> queue;
     private final InputStream inputStream;
 
@@ -31,9 +30,9 @@ public class InputStreamToQueueReader {
 
     @Override
     public String toString() {
-        return "InputStreamToQueueReader{" +
+        return "InputStreamToQueueReader[" +
                 "queue=" + queue +
                 ", inputStream=" + inputStream +
-                '}';
+                ']';
     }
 }

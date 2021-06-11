@@ -12,12 +12,14 @@ public class CollectionToOutputStreamWriter {
 
     public void writeSortedCollectionToFile(final Collection<String> collection)
             throws IOException {
-        List<String> sortedCollection = new ArrayList<>(collection);
-        Collections.sort(sortedCollection);
+        List<String> collectionDictionary = new ArrayList<>(collection);
+
+        Collections.sort(collectionDictionary);
+
         try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
                 outputStream))) {
 
-            for (String word : sortedCollection) {
+            for (String word : collectionDictionary) {
                 bw.write(word + "\n");
             }
         }
@@ -25,8 +27,8 @@ public class CollectionToOutputStreamWriter {
 
     @Override
     public String toString() {
-        return "CollectionToOutputStreamWriter{" +
+        return "CollectionToOutputStreamWriter[" +
                 "outputStream=" + outputStream +
-                '}';
+                ']';
     }
 }

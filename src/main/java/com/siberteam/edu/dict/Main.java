@@ -40,11 +40,11 @@ public class Main {
                         inputFile.getName());
             }
 
-//            if (outputFile.exists() && outputFile.isFile()) {
-//                throw new UrlDictionaryAppException(
-//                        UrlDictionaryExitCode.FILE_ALREADY_EXISTS,
-//                        outputFile.getName());
-//            }
+            if (outputFile.exists() && outputFile.isFile()) {
+                throw new UrlDictionaryAppException(
+                        UrlDictionaryExitCode.FILE_ALREADY_EXISTS,
+                        outputFile.getName());
+            }
 
             inputStream = new FileInputStream(inputFile);
             outputStream = new FileOutputStream(outputFile);
@@ -53,14 +53,14 @@ public class Main {
                     new InputStreamToQueueReader(inputStream);
             Queue<String> urlFiles = reader.getUrlQueue();
 
-            ReadingUrlThreadsExecutor threadsExecutor =
-                    new ReadingUrlThreadsExecutor(urlFiles, threadsEntity);
-            threadsExecutor.executeReading();
+            ReadingUrlThreadsStarter threadsExecutor =
+                    new ReadingUrlThreadsStarter(urlFiles, threadsEntity);
+            threadsExecutor.startThreads();
 
             CollectionToOutputStreamWriter writer =
                     new CollectionToOutputStreamWriter(outputStream);
             writer.writeSortedCollectionToFile(
-                    threadsExecutor.getUrlDictionary());
+                    threadsExecutor.getWordSet());
 
         } catch (IOException | RuntimeException e) {
             handleException(UrlDictionaryExitCode.INPUT_OUTPUT, e);

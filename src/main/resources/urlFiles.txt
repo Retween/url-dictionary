@@ -1,4 +1,4 @@
-file:///home/retw/IdeaProjects/url-dictionary/src/main/resources/WarAndPeace.text
+file:///home/retw/IdeaProjects/url-dictionary/src/main/resources/WarAndPeace.txt
 file:///home/retw/IdeaProjects/url-dictionary/src/main/resources/text1.txt
 file:///home/retw/IdeaProjects/url-dictionary/src/main/resources/text2.txt
 http://debri-dv.com/l-dictionary/src/main/resources/text2.txt

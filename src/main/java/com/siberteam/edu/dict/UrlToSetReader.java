@@ -9,47 +9,43 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 public class UrlToSetReader implements Runnable {
-    private final Set<String> urlDictionary;
-    private final Queue<String> urlFiles;
-    private final CountDownLatch latch;
+    private final Set<String> wordSet;
+    private final Queue<String> process;
+    private final CountDownLatch readersLatch;
 
-    public UrlToSetReader(Set<String> urlDictionary, Queue<String> urlFiles,
-                          CountDownLatch latch) {
-        this.urlDictionary = urlDictionary;
-        this.urlFiles = urlFiles;
-        this.latch = latch;
+    public UrlToSetReader(Set<String> wordSet, Queue<String> process,
+                          CountDownLatch readersLatch) {
+        this.wordSet = wordSet;
+        this.process = process;
+        this.readersLatch = readersLatch;
     }
 
     @Override
     public void run() {
-        while (!urlFiles.isEmpty()) {
-            String urlFilePath = urlFiles.poll();
-            URL url = null;
-            BufferedReader br = null;
+        String urlFilePath = process.poll();
+        if (urlFilePath == null) {
+            readersLatch.countDown();
+        }
 
-            try {
-                if (urlFilePath != null) {
-                    url = new URL(urlFilePath);
-                    br = new BufferedReader(new InputStreamReader(
-                            url.openStream()));
+        try {
+            while (urlFilePath != null) {
+                URL url = new URL(urlFilePath);
+                try (BufferedReader br = new BufferedReader(
+                        new InputStreamReader(url.openStream()))) {
 
                     String inputString;
                     while ((inputString = br.readLine()) != null) {
                         parseString(inputString);
                     }
                 }
-            } catch (IOException e) {
-                Main.log("Invalid URL: " + url);
-            } finally {
-                if (br != null) {
-                    try {
-                        br.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                latch.countDown();
+
+                urlFilePath = process.poll();
             }
+
+        } catch (IOException e) {
+            Main.log("Invalid URL " + urlFilePath);
+        } finally {
+            readersLatch.countDown();
         }
     }
 
@@ -57,9 +53,8 @@ public class UrlToSetReader implements Runnable {
         if (!inputString.isEmpty()) {
             for (String word : inputString.toLowerCase()
                     .split("[\\p{Punct}\\s«»+]")) {
-//                    .split("[\\s+]")) {
                 if (word.matches("[А-Яа-яЁё]{3,}")) {
-                    urlDictionary.add(word);
+                    wordSet.add(word);
                 }
             }
         }
@@ -67,9 +62,10 @@ public class UrlToSetReader implements Runnable {
 
     @Override
     public String toString() {
-        return "UrlToSetReader{" +
-                "urlDictionarySize=" + urlDictionary.size() +
-                ", urlFilesSize=" + urlFiles.size() +
-                '}';
+        return "UrlToSetReader" + "[" +
+                "wordSet=" + wordSet +
+                ", process=" + process +
+                ", readersLatch=" + readersLatch +
+                ']';
     }
 }
