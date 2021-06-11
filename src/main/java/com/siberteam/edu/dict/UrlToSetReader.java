@@ -23,9 +23,6 @@ public class UrlToSetReader implements Runnable {
     @Override
     public void run() {
         String urlFilePath = process.poll();
-        if (urlFilePath == null) {
-            readersLatch.countDown();
-        }
 
         try {
             while (urlFilePath != null) {
